@@ -1,15 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>PixiJS Basic Game</title>
-  
-</head>
-<body>
+import Initializer from "./src/intializer.js";
+import BuildEnvo from "./src/BuildEnvo.js";
 
-  <script src="https://cdn.jsdelivr.net/npm/pixi.js@8/dist/pixi.min.js"></script>
 
-  <script  type='module' src="main.js"></script>
+const app=await Initializer.intiailzeApp()
 
-</body>
-</html>
+const buildEnvo=new BuildEnvo(app)
+buildEnvo.buildEnvo()
+
