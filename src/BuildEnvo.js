@@ -1,24 +1,28 @@
 import AssetLoader from "./AssetLoader.js";
 import Transitions from "./transition.js";
+import Account from "./Account.js";
 class BuildEnvo{
     constructor(app){
         this.loader=new AssetLoader()
         this.app=app
         this.transit=new Transitions()
 
+        this.Account=new Account()
+        this.val=20
         this.texture=[]
         
         this.frameContainer=new PIXI.Container()
         this.playButtonContainer=new PIXI.Container()
         this.settingContainer=new PIXI.Container()
         this.bgContainer=new PIXI.Container()
-
+        this.stakePanelContainer=new PIXI.Container()
         this.introContainer=new PIXI.Container()
-        
+        this.blanceContainer=new PIXI.Container()
         this.screenContainer=new PIXI.Container()
 
         this.screenContainer.addChild(this.bgContainer)
         this.gameContainer = new PIXI.Container();
+        
         this.bgContainer.addChild(this.gameContainer);
 
         app.stage.addChild(this.screenContainer)
@@ -60,7 +64,18 @@ class BuildEnvo{
             '../Assets/introScreen/assets/prePlayBtn_disabled.png',
             '../Assets/introScreen/assets/prePlayBtn_down.png'
             ,'../Assets/introScreen/assets/prePlayBtn_normal.png'
-            ,'../Assets/introScreen/assets/prePlayBtn_hover.png'
+            ,'../Assets/introScreen/assets/prePlayBtn_hover.png',
+
+
+            '../Assets/gamePanel/newPanel/assets/plusIcon_normal.png',
+            '../Assets/gamePanel/newPanel/assets/plusIcon_hover.png',
+            '../Assets/gamePanel/newPanel/assets/plusIcon_down.png',
+            '../Assets/gamePanel/newPanel/assets/plusIcon_disabled.png',
+
+            '../Assets/gamePanel/newPanel/assets/minusIcon_normal.png',
+            '../Assets/gamePanel/newPanel/assets/minusIcon_hover.png',
+            '../Assets/gamePanel/newPanel/assets/minusIcon_down.png',
+            '../Assets/gamePanel/newPanel/assets/minusIcon_disabled.png',
 
 
             
@@ -182,15 +197,114 @@ class BuildEnvo{
         BuildEnvo.sound=this.transit.clickTransition(this.soundButton,this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_normal.png'],BuildEnvo.sound)
 
 
-
+        
         this.seetingButton.position.set(this.soundButton.width+20,0)
 
         this.settingContainer.addChild(this.soundButton)
         this.settingContainer.addChild(this.seetingButton)
+
+
         
-        this.settingContainer.position.set(this.app.screen.width-this.settingContainer.width,this.settingContainer.height/2)
+        
+        //this.settingContainer.pivot.set(this.settingContainer.getLocalBounds().maxX,0)
+        this.settingContainer.position.set(this.gameContainer.width,this.settingContainer.height/2)
         this.settingContainer.scale.set(0.5)
         this.gameContainer.addChild(this.settingContainer)
+    }
+
+
+    #buildStakePanel(){
+        this.incStake=this.#buildButton('../Assets/gamePanel/newPanel/assets/plusIcon_normal.png',)
+        this.deccStake=this.#buildButton('../Assets/gamePanel/newPanel/assets/minusIcon_normal.png',)
+        this.stake=new PIXI.Text({
+            text:`$${this.val}\n stake`,
+            style:{
+                fontSize:70,
+                fontFamily:'Arial',
+                fill:0xffffff,
+                fontWeight:500,
+                align:'center'
+            },
+            
+        })
+
+        this.incState={value:true}
+        this.deccState={value:true}
+
+        this.incStake.eventMode='static'
+        this.deccStake.eventMode='static'
+
+
+        this.transit.hoverTransition(this.incStake,this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_disabled.png'],this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_disabled.png'],this.incState)
+
+        this.transit.hoverTransition(this.deccStake,this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_disabled.png'],this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_disabled.png'],this.deccState)
+
+
+        this.incStake.on('pointerdown',()=>{
+             if(this.val+20>=100||this.val>=100){this.incStake.texture=this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_disabled.png']
+                this.incState.value=false
+             }
+            if(this.val>=100)return
+           
+            this.val+=20
+            this.stake.text=`$${this.val}\n stake`
+            this.deccState.value=true
+            
+            if(this.val>=20)this.deccStake.texture=this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_normal.png']
+            
+        })
+        this.deccStake.on('pointerdown',()=>{
+            if(this.val-20<=0||this.val<=0){
+                this.deccStake.texture=this.texture['../Assets/gamePanel/newPanel/assets/minusIcon_disabled.png']
+                this.deccState.value=false
+            }
+            if(this.val<=0)return
+            
+            this.val-=20
+            this.stake.text=`$${this.val}\n stake`
+            this.incState.value=true
+            //this.Account.decreaseBalnce(this.val)
+            if(this.val<=80)this.incStake.texture=this.texture['../Assets/gamePanel/newPanel/assets/plusIcon_normal.png']
+            
+        })
+
+
+        this.stake.anchor.set(0.5)
+
+        this.stake.position.set(this.incStake.width+100,0)
+        this.deccStake.position.set(this.stake.x+this.deccStake.width+100,0)
+
+        console.log("csdcfcsdcsdc",this.incStake,"csdcscs")
+
+        this.stakePanelContainer.addChild(this.incStake,this.deccStake,this.stake)
+
+        this.stakePanelContainer.position.set(this.gameContainer.width,this.gameContainer.height-30)
+
+        this.stakePanelContainer.scale.set(0.3)
+        this.gameContainer.addChild(this.stakePanelContainer)
+
+
+
+    }
+
+
+    #buildAccountPanel(){
+        this.Balance=new PIXI.Text({
+            text:`$${this.Account.getBalance()}\nBalance`,
+            style:{
+                fontSize:20,
+                fontFamily:'Arial',
+                fill:0xffffff,
+                fontWeight:500,
+                align:'center'
+            },
+        })
+
+        this.blanceContainer.addChild(this.Balance)
+
+        this.blanceContainer.position.set(100,this.gameContainer.height-60)
+
+        this.gameContainer.addChild(this.blanceContainer)
     }
 
     #buildIntroPanel(){
@@ -265,6 +379,8 @@ class BuildEnvo{
             this.#buildFrame()
             this.#buildPlayPanel()
             this.#buildSettingPanel()
+            this.#buildStakePanel()
+            this.#buildAccountPanel()
     }
     async buildEnvo(){
         await this.#loadAsset()
