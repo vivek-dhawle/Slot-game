@@ -1,7 +1,9 @@
 import AssetLoader from "./AssetLoader.js";
 import Transitions from "./transition.js";
 import Account from "./Account.js";
-class BuildEnvo{
+import BuildSlot from "./BuildSlot.js";
+
+class BuildGameEnvo{
     constructor(app){
         this.loader=new AssetLoader()
         this.app=app
@@ -19,27 +21,30 @@ class BuildEnvo{
         this.introContainer=new PIXI.Container()
         this.blanceContainer=new PIXI.Container()
         this.screenContainer=new PIXI.Container()
+        this.gameContainer = new PIXI.Container();
+
 
         this.screenContainer.addChild(this.bgContainer)
-        this.gameContainer = new PIXI.Container();
         
-        this.bgContainer.addChild(this.gameContainer);
 
         app.stage.addChild(this.screenContainer)
-
-
-        this.intro={value:true}
         
 
+        this.intro={value:true}
+        this.playAnimation=false
+
+
+       
+
     }
-    
+
     static sound={value:true}
 
     async #loadAsset(){
         this.texture=await this.loader.load(['../Assets/backgrounds/assets/bg.png','../Assets/gameLogo/assets/gameLogo.png','../Assets/reelFrame/assets/reelFrameBG.png','../Assets/reelFrame/assets/reelOuterFrame.png','../Assets/gamePanel/newPanel/assets/spineBtn_main_normal.png','../Assets/gamePanel/newPanel/assets/menu_quickSpin_normal.png','../Assets/gamePanel/newPanel/assets/menu_autospin_normal.png','../Assets/gamePanel/newPanel/assets/spineBtn_main_hover.png','../Assets/gamePanel/newPanel/assets/menu_autospin_hover.png','../Assets/gamePanel/newPanel/assets/menu_quickSpin_hover.png',
 
             '../Assets/reelFrame/assets/reelframe.png',
-
+            '../Assets/gamePanel/newPanel/assets/spineBtn_main_disabled.png',
             '../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png',
             '../Assets/gamePanel/newPanel/assets/soundOnIcon_hover.png',
 
@@ -92,12 +97,12 @@ class BuildEnvo{
         this.bg=new PIXI.Sprite(this.texture['../Assets/backgrounds/assets/bg.png'])
         
         this.bg.scale.set(0.6)
-
         this.bgContainer.height=this.app.screen.height
         this.bgContainer.width=this.app.screen.width
-
+        
 
         this.bgContainer.addChild(this.bg)
+        this.bgContainer.addChild(this.gameContainer);
     }
 
     #buildText(x,y,container){
@@ -126,6 +131,8 @@ class BuildEnvo{
         this.frameContainer.scale.set(0.5)
         console.log(this.bgContainer)
         this.frameContainer.position.set(this.bgContainer.getLocalBounds().maxX/2,(this.bgContainer.getLocalBounds().maxY/2)-50)
+         this.buildSlot=new BuildSlot(this.app,this.frameContainer)
+        this.buildSlot.buildSlot()
     }
 
     #buildButton(val){
@@ -144,9 +151,6 @@ class BuildEnvo{
 
         this.autoSpinButton=this.#buildButton('../Assets/gamePanel/newPanel/assets/menu_autospin_normal.png')
 
-        
-
-
         this.transit.hoverTransition(this.spinButton,this.texture['../Assets/gamePanel/newPanel/assets/spineBtn_main_hover.png'],this.texture['../Assets/gamePanel/newPanel/assets/spineBtn_main_normal.png'])
 
 
@@ -155,6 +159,26 @@ class BuildEnvo{
         )
 
         this.transit.hoverTransition(this.autoSpinButton,this.texture['../Assets/gamePanel/newPanel/assets/menu_autospin_hover.png'],this.texture['../Assets/gamePanel/newPanel/assets/menu_autospin_normal.png'])
+
+
+
+        this.spinButton.on('pointerdown',()=>{
+            this.playAnimation = true;
+            this.buildSlot.spinning=true
+            this.buildSlot.buildBR();
+            this.spinButton.texture=this.texture['../Assets/gamePanel/newPanel/assets/spineBtn_main_disabled.png']
+                this.Account.decreaseBalnce(this.val)
+                this.Balance.text=`$${this.Account.getBalance()}\nBalance`
+                setTimeout(()=>{
+                    this.buildSlot.spinning=false
+                    this.playAnimation=false
+                    
+                    this.spinButton.texture=this.texture['../Assets/gamePanel/newPanel/assets/spineBtn_main_normal.png']
+                    this.buildSlot.destroyBr()
+                    this.buildSlot.buildR()
+                },3000)
+            
+        })
 
 
     
@@ -188,13 +212,13 @@ class BuildEnvo{
         this.seetingButton=this.#buildButton('../Assets/gamePanel/newPanel/assets/menu_settings_normal.png')
 
         
-            this.transit.hoverTransition(this.soundButton,this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_normal.png'],BuildEnvo.sound)
+            this.transit.hoverTransition(this.soundButton,this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_normal.png'],BuildGameEnvo.sound)
 
 
         this.transit.hoverTransition(this.seetingButton,this.texture['../Assets/gamePanel/newPanel/assets/menu_settings_down.png'],this.texture['../Assets/gamePanel/newPanel/assets/menu_settings_normal.png'])
 
 
-        BuildEnvo.sound=this.transit.clickTransition(this.soundButton,this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_normal.png'],BuildEnvo.sound)
+        this.transit.clickTransition(this.soundButton,this.texture['../Assets/gamePanel/newPanel/assets/soundOnIcon_normal.png'],this.texture['../Assets/gamePanel/newPanel/assets/soundOffIcon_normal.png'],BuildGameEnvo.sound)
 
 
         
@@ -307,92 +331,36 @@ class BuildEnvo{
         this.gameContainer.addChild(this.blanceContainer)
     }
 
-    #buildIntroPanel(){
-        this.frame1Sprite=new PIXI.Sprite(this.texture['../Assets/introScreen/assets/frame1.png'])
-        this.frame2Sprite=new PIXI.Sprite(this.texture['../Assets/introScreen/assets/frame2.png'])
-        
-
-        this.frame1Sprite.anchor.set(0.5)
-        this.frame2Sprite.anchor.set(0.5)
-
-
-        const loaclBounds=this.introContainer.getLocalBounds()
-
-        this.introContainer.addChild(this.frame1Sprite)
-        this.introContainer.scale.set(0.4)
-        this.introContainer.pivot.set(loaclBounds.maxX+loaclBounds.minX/2,loaclBounds.maxY+loaclBounds.minY/2)
-
-        this.introContainer.position.set(this.bgContainer.width/2,(this.bgContainer.height/2)-80)
-        this.bgContainer.addChild(this.introContainer)
-
-
-    }
     
 
-    #buildIntroButton(){
-        this.leftBtn=this.#buildButton('../Assets/introScreen/assets/btn_arrow1.png')
-        this.rightBtn=this.#buildButton('../Assets/introScreen/assets/btn_arrow2.png')
-        this.playrBtn=this.#buildButton('../Assets/introScreen/assets/prePlayBtn_normal.png')
 
-
-
-        this.rightBtn.eventMode='static'
-        this.rightBtn.on('mousedown',()=>{
-            this.introContainer.removeChild(this.frame1Sprite)
-            this.introContainer.addChild(this.frame2Sprite)
-        })
-        this.leftBtn.eventMode='static'
-        this.leftBtn.on('mousedown',()=>{
-            this.introContainer.removeChild(this.frame2Sprite)
-            this.introContainer.addChild(this.frame1Sprite)
-        })
-
-        this.transit.hoverTransition(this.playrBtn,this.texture['../Assets/introScreen/assets/prePlayBtn_hover.png'],this.texture['../Assets/introScreen/assets/prePlayBtn_normal.png'])
-
-        this.playrBtn.on('mousedown',()=>{
-            this.bgContainer.removeChild(this.introContainer)
-            this.bgContainer.removeChild(this.textSprite)
-            this.#buildGame()
-            this.bgContainer.addChild(this.gameContainer)
-        })
-
-
-
-
-        this.introContainer.addChild(this.leftBtn,this.rightBtn,this.playrBtn)
-        this.leftBtn.position.set(-this.frame1Sprite.width/2-50,0)
-        this.rightBtn.position.set(this.frame1Sprite.width/2+50,0)
-        this.playrBtn.position.set(0,this.frame1Sprite.height/2)
-    }
-
-
-
-    #buildIntro(){
-            this.#buildBg()
-            this.#buildText(this.app.screen.width/2,100,this.bgContainer)
-            this.#buildIntroPanel()
-            this.#buildIntroButton()
-    }
+    
     #buildGame(){
-            //this.#buildBg()
-            this.#buildText(150,200,this.gameContainer)
+            this.#buildBg()
+            this.#buildText(200,200,this.gameContainer)
             this.#buildFrame()
             this.#buildPlayPanel()
             this.#buildSettingPanel()
             this.#buildStakePanel()
             this.#buildAccountPanel()
     }
+
+
     async buildEnvo(){
         await this.#loadAsset()
         
         
-            
-            this.#buildIntro()
-            //this.screenContainer.addChild(this.bgContainer)
+            this.speed=100*this.app.ticker.deltaTime
+            this.#buildGame()
+            this.app.ticker.add((ticker)=>{
+                if(this.playAnimation){
+                    this.buildSlot.playAnimation()
+                }
+            })
         
         
     }
 
 }
 
-export default BuildEnvo
+export default BuildGameEnvo
