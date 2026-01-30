@@ -170,13 +170,22 @@ class BuildGameEnvo{
                 this.Account.decreaseBalnce(this.val)
                 this.Balance.text=`$${this.Account.getBalance()}\nBalance`
                 setTimeout(()=>{
+                    
                     this.buildSlot.spinning=false
                     this.playAnimation=false
                     
                     this.spinButton.texture=this.texture['../Assets/gamePanel/newPanel/assets/spineBtn_main_normal.png']
+                    
                     this.buildSlot.destroyBr()
                     this.buildSlot.buildR()
-                },3000)
+                    this.buildSlot.checkWin()
+                    
+                    // console.log(this.buildSlot.symbolSprite.indexOf(this.buildSlot.arr1[0].texture))
+                    // console.log(this.buildSlot.arr2)
+                    // console.log(this.buildSlot.arr3)
+                    // console.log(this.buildSlot.arr4)
+                    // console.log(this.buildSlot.arr5)
+                },2000)
             
         })
 
@@ -350,7 +359,7 @@ class BuildGameEnvo{
         await this.#loadAsset()
         
         
-            this.speed=100*this.app.ticker.deltaTime
+            this.speed=0.01*this.app.ticker.deltaTime
             this.#buildGame()
             this.app.ticker.add((ticker)=>{
                 if(this.playAnimation){
